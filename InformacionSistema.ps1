@@ -13,6 +13,8 @@
 
 clear-host  
 
+write-host "<----------INFORMACION DE PC-------------->" -ForegroundColor Yellow 
+
 $a = get-computerinfo 
 
 # fabricante 
@@ -150,10 +152,19 @@ Write-Host "Núm. Procesadores:`t" $a.CsNumberOfProcessors
 Write-Host "Núm. Procesadores Log.:`t" $a.CsNumberOfLogicalProcessors
 
 " "
-<#--------------#>
-#Write-Host "`nDISCO DURO"
-#"Discos"
-#Get-PhysicalDisk | select-object -property FriendlyName,MediaType, @{label="Size(GB)";expression={$_.Size/1GB}} 
-"VOLUMENES"
-Get-Volume | select-object -property DriveLetter,FileSystemLabel,FileSystemType,Size  
-" "
+<#-------------#>
+$tarea1 = { Get-PhysicalDisk | select-object -property FriendlyName,MediaType, @{label="Size(GB)";expression={$_.Size/1GB}} | Format-Table }
+$tarea2 = { Get-Volume | select-object -property DriveLetter,FileSystemLabel,FileSystemType,@{label="Size(GB)";expression={$_.Size/1GB}} | Format-Table }  
+
+$job1 = Start-Job -ScriptBlock $tarea1;
+$job2 = Start-Job -ScriptBlock $tarea2; 
+
+$null = wait-job -job $job1,$job2 
+
+$result1 = Receive-Job -job $job1;  
+$result2 = Receive-Job -job $job2; 
+
+write-host "DISCOS"
+$result1
+write-host "VOLUMENES"
+$result2 
